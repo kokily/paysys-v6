@@ -76,7 +76,7 @@ type TokenPair = {
  * @returns         Access Token과 Refresh Token을 포함하는 객체 Promise
  * @throws {Error}  데이터베이스 작업 또는 토큰 생성에 실패한 경우
  */
-async function createToken(user: User): Promise<TokenPair> {
+export async function createToken(user: User): Promise<TokenPair> {
   const tokenRepo = dataSource.getRepository(Token);
   const token = new Token();
 
@@ -139,7 +139,7 @@ type DecodedJwtPayload = {
  * @returns         디코딩된 페이로드 객체를 포함하는 Promise
  * @thorws {Error}  JWT_SECRET 환경변수 누락 또는 토큰 검증/디코딩 실패
  */
-async function decodeToken<T extends DecodedJwtPayload = any>(
+export async function decodeToken<T extends DecodedJwtPayload = any>(
   token: string,
 ): Promise<T> {
   const secretKey = process.env.JWT_SECRET;

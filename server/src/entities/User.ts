@@ -38,6 +38,12 @@ class User extends BaseEntity {
 
   @OneToMany((type) => Bill, (bill) => bill.user_id)
   bills!: Bill[];
+
+  // Method
+  serialize() {
+    const { password, ...rest } = this;
+    return rest;
+  }
 }
 
 export default User;

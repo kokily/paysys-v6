@@ -95,7 +95,7 @@ export function validateBody<T>(
     return false;
   }
 
-  ctx.request.body = value;
+  ctx.body = value;
 
   return true;
 }
