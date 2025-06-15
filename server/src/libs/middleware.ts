@@ -6,6 +6,9 @@ import {
   tokenRefresh,
 } from './authenticate';
 import { JsonWebTokenError, TokenExpiredError } from 'jsonwebtoken';
+import { dataSource } from '../server';
+import User from '../entities/User';
+import { IS_PROD } from './constants';
 
 /**
  * 사용자 인증 확인 미들웨어
@@ -14,7 +17,47 @@ import { JsonWebTokenError, TokenExpiredError } from 'jsonwebtoken';
  * @returns             Next 미들웨어 실행 Promise
  * @throws {HttpError}  사용자 인증 X, 유효하지 않은 경우 401
  */
-export async function authorizedUser(ctx: Context, next: Next): Promise<void> {}
+export async function authorizedUser(ctx: Context, next: Next): Promise<void> {
+  const userRepo = dataSource.getRepository(User);
+  const UNAUTHORIZED_MESSAGE = '로그인 후 이용해 주세요';
+
+  const decodedUser = ctx.state.user;
+
+  if (!decodedUser || !decodedUser.user_id) {
+    ctx.throw(401, UNAUTHORIZED_MESSAGE);
+  }
+
+  const user = await userRepo.findOneBy({ id: decodedUser.user_id });
+
+  if (!user) {
+    ctx.throw(401, UNAUTHORIZED_MESSAGE);
+  }
+
+  await next();
+}
+
+export async function authorizedAdmin(ctx: Context, next: Next): Promise<void> {
+  const userRepo = dataSource.getRepository(User);
+  const UNAUTHORIZED_MESSAGE = '로그인 후 이용해 주세요';
+
+  const decodedUser = ctx.state.user;
+
+  if (!decodedUser || !decodedUser.user_id) {
+    ctx.throw(401, UNAUTHORIZED_MESSAGE);
+  }
+
+  const user = await userRepo.findOneBy({ id: decodedUser.user_id });
+
+  if (!user) {
+    ctx.throw(401, UNAUTHORIZED_MESSAGE);
+  }
+
+  if (!user.admin) {
+    ctx.throw(403, '관리자 권한이 없습니다.');
+  }
+
+  await next();
+}
 
 const REFRESH_THRESHOLD_MS = 1000 * 60 * 30;
 
@@ -84,5 +127,36 @@ export async function jwtMiddleware(ctx: Context, next: Next) {
     } else {
       return next();
     }
+  }
+}
+
+export function cors(ctx: Context, next: Next) {
+  const allowedHosts = [/^https:\/\/paysys.kr$/, /^https:\/\/image.paysys.kr$/];
+
+  if (!IS_PROD) {
+    allowedHosts.push(/^http:\/\/localhost/);
+  }
+
+  const { origin } = ctx.headers;
+
+  if (origin) {
+    const valid = allowedHosts.some((regex) => regex.test(origin));
+
+    if (!valid) return next();
+
+    ctx.set('Access-Control-Allow-Origin', origin);
+    ctx.set('Access-Control-Allow-Credentials', 'true');
+
+    if (ctx.method === 'OPTIONS') {
+      ctx.set(
+        'Access-Control-Allow-Headers',
+        'Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With, Cookie',
+      );
+      ctx.set('Access-Control-Allow-Methods', 'GET,HEAD,PUT,POST,DELETE,PATCH');
+    }
+
+    return next();
+  } else {
+    return next();
   }
 }

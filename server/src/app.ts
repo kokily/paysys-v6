@@ -6,7 +6,7 @@ import serve from 'koa-static';
 import send from 'koa-send';
 import path from 'path';
 import api from './api';
-import { jwtMiddleware } from './libs/middleware';
+import { cors, jwtMiddleware } from './libs/middleware';
 
 const app = new Koa();
 const router = new Router();
@@ -14,6 +14,7 @@ const router = new Router();
 const rootDir = path.resolve(process.cwd(), './../client');
 
 app.use(bodyParser({ multipart: true }));
+app.use(cors);
 app.use(logger());
 app.use(jwtMiddleware);
 app.use(router.routes());

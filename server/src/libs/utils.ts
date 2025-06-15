@@ -2,9 +2,6 @@ import type { ObjectSchema, ValidationError } from 'joi';
 import Bill from '../entities/Bill';
 import { Context } from 'koa';
 
-//  constants
-export const isProd = process.env.NODE_ENV === 'production';
-
 // Masking Name
 export function maskingName(name: string): string {
   if (name.length > 2) {

@@ -8,7 +8,7 @@ import jwt, {
 import User from '../entities/User';
 import { dataSource } from '../server';
 import Token from '../entities/Token';
-import { isProd } from './utils';
+import { IS_PROD } from './constants';
 
 type JwtPayloadType = string | object | Buffer;
 
@@ -187,8 +187,8 @@ export async function decodeToken<T extends DecodedJwtPayload = any>(
  */
 export function setCookies(ctx: Context, tokens?: TokenPair): void {
   const baseCookieOptions = {
-    domain: isProd ? '.paysys.kr' : undefined,
-    secure: isProd,
+    domain: IS_PROD ? '.paysys.kr' : undefined,
+    secure: IS_PROD,
     sameSite: 'lax' as const,
     httpOnly: true,
   };
